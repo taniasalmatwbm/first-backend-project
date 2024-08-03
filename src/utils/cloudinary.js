@@ -19,10 +19,14 @@ import fs from 'fs'   //node hame files ko handle krne k liye fs deta h
             //file has been uploaded success fully
             console.log('file uploaded successfully on cloudinary', response.url );
             //user ko b khxh na khxh return krna pary ga
-           // fs.unlinkSync(localFilePath)
+            fs.unlink(localFilePath)
             return response;
         }catch(error){
-           fs.unlinkSync(localFilePath) 
+            fs.unlink(localFilePath, (error) => {
+                if (error) {
+                  console.error('Error removing local file:', error);
+                }
+              });
            //removed the locally temporary saved file as upload operation got failed
            return null
         }
