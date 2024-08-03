@@ -7,6 +7,7 @@ import fs from 'fs'   //node hame files ko handle krne k liye fs deta h
         api_key: process.env.CLOUDINARY_API_KEY,
         api_secret: process.env.CLOUDINARY_API_SECRET, 
         // Click 'View Credentials' below to copy your API secret
+        
     });
 
     const cloudinaryUploadedfileMethod= async (localFilePath)=>{
