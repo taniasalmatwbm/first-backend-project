@@ -18,10 +18,11 @@ db_conect()
        throw error
     })
 
-   app.listen(process.env.PORT || 8000, ()=>{
-       console.log(`Serving is running on this port ${process.env.PORT || 8000}`)
+   app.listen(process.env.PORT || 7000, ()=>{
+       console.log(`Serving is running on this port ${process.env.PORT || 7000}`)
    })
 })
 .catch((err)=>{
    console.log(`Running is coming from server listner ${err}`)
+
 })
