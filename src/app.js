@@ -28,6 +28,10 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
+import userRouter from './routes/user.routes.js'
+//routes declaration yaha routes declare kren k liye app.get() se nhi kare gy routes 
+//seperate h us waqt app mein hi thy wahi se get kr liya ab alag h milddware use kare gy
 
-
+app.use("/api/v1/users", userRouter)
+//like this : http://localhost:8000/users/register
 export {app}
