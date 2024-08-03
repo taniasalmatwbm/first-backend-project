@@ -4,6 +4,7 @@ import {DB_NAME} from "../constants.js"
 
 // Second Approach of connection Db
 const db_conect = async ()=>{
+    
     try{
     //connect hune k baad obj deta h response mein
      const connectionInstance= await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
