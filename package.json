@@ -1,0 +1,14 @@
+{
+  "name": "first-backend-youtube",
+  "version": "1.0.0",
+  "description": "my first backend poject",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "MERN"
+  ],
+  "author": "taniya Salamat",
+  "license": "ISC"
+}
