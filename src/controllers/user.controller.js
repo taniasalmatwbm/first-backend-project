@@ -1,5 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
-//import {ApiResponse}  from "../utils/ApiResponse.js"
+import {ApiResponse}  from "../utils/ApiResponse.js"
 import {ApiError} from  "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
 import {cloudinaryUploadedfileMethod} from "../utils/cloudinary.js"
@@ -31,6 +31,7 @@ const registerUser= asyncHandler(async (req, res)=>{
     console.log("frontend se ae wala data !! ", req.body)
     console.log(email)
 
+
     //2- logic validation k user ne empty to nhi bhja
     if(
         [fullName, username, email, password].some((field)=>field?.trim() === "")
@@ -39,6 +40,8 @@ const registerUser= asyncHandler(async (req, res)=>{
         throw new ApiError(400, "All feild must be required !!")
      }
 
+
+     
       // 3- logic // check if user already exists: username, email
       const existingUser = await User.findOne({ 
         $or : [{ username }, { email }]
@@ -48,7 +51,7 @@ const registerUser= asyncHandler(async (req, res)=>{
       if(existingUser){
         throw new ApiError(409, "Username or Email already exist !")
       }
-
+       console.log(req.files)
       //4-logic check for images, check for avatar
       //register method se pahle multer use kiya h multer hame req.files deta h
       // req.files avatar and coverImage h
@@ -70,7 +73,7 @@ const registerUser= asyncHandler(async (req, res)=>{
        const coverImage=await cloudinaryUploadedfileMethod(coverImageLocalpath)
  
        if(!avatar){
-         throw new ApiError(400, "Avatar file is required in cloudinary !!")
+         throw new ApiError(400, "Avatar file is not required in cloudinary !!")
        }
 
     //6-logic create user object - create entry in db and check is successfully
