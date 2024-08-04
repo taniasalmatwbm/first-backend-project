@@ -12,7 +12,7 @@ import fs from 'fs'   //node hame files ko handle krne k liye fs deta h
 
     const cloudinaryUploadedfileMethod= async (localFilePath)=>{
         try {
-           if(!localFilePath)  return console('file link not avilable')
+           if(!localFilePath)  return null //console('file link not avilable')
            const response = await cloudinary.uploader.upload(localFilePath, {
              resource_type: "auto"
             })
@@ -20,14 +20,15 @@ import fs from 'fs'   //node hame files ko handle krne k liye fs deta h
             //file has been uploaded success fully
             console.log('file uploaded successfully on cloudinary', response.url );
             //user ko b khxh na khxh return krna pary ga
-            fs.unlink(localFilePath)
+            fs.unlinkSync(localFilePath)
             return response;
         }catch(error){
-            fs.unlink(localFilePath, (error) => {
-                if (error) {
-                  console.error('Error removing local file:', error);
-                }
-              });
+            fs.unlinkSync(localFilePath)
+              // , (error) => {    
+              //   if (error) {
+              //     console.error('Error removing local file:', error);
+              //   }
+              // });
            //removed the locally temporary saved file as upload operation got failed
            return null
         }
