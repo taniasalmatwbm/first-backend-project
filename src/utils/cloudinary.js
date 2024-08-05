@@ -19,8 +19,10 @@ import fs from 'fs'   //node hame files ko handle krne k liye fs deta h
 
             //file has been uploaded success fully
             console.log('file uploaded successfully on cloudinary', response.url );
+            console.log(response)
             //user ko b khxh na khxh return krna pary ga
-            fs.unlinkSync(localFilePath)
+            fs.unlinkSync(localFilePath) 
+             //folder k public temp se file khud unlink hu jaye gi sync 
             return response;
         }catch(error){
             fs.unlinkSync(localFilePath)
