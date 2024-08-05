@@ -26,7 +26,7 @@ app.use(express.static("public"))
 //SERVER se user k browser us ki cookies ko access b kr lu or set b us k liya CURD operate
 // khxh tareko se ap secure cookies user k browser mein rakh sakte hn jesy server hi read 
 //or delete kr sakta h
-app.use(cookieParser())
+app.use(cookieParser()) // cookie k access esi waja se jaye ga
 
 
 import userRouter from './routes/user.routes.js'
