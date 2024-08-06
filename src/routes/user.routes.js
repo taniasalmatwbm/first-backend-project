@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { loginUser, logoutUser, registerUser } from '../controllers/user.controller.js'
+import { loginUser, logoutUser, registerUser, refreshAccessToken } from '../controllers/user.controller.js'
 import {upload} from '../middlewares/multer.middleware.js'
 import { varifyJwt } from '../middlewares/auth.middleware.js'
 
@@ -26,5 +26,6 @@ router.route("/login").post(loginUser)
 //secured routes
 router.route("/logout").post(varifyJwt, logoutUser)
 
+router.route("/refresh-token").post(refreshAccessToken)
 //export default k purpose jaha import krna h we can use by any name 
 export default router
