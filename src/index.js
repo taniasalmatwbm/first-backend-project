@@ -12,6 +12,7 @@ import db_conect from "./db/index.js";
 
 //app db se connect hune k baad listen krti h
 db_conect()
+//after connect db is will send promise
 .then(()=>{
     app.on('error', (error)=>{
        console.log(`Error from app on listner ${error}`)
