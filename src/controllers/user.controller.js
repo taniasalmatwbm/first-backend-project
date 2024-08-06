@@ -342,9 +342,137 @@ const refreshAccessToken= asyncHandler( async(req, res)=>{
      }
 })
 
+// changeCurrentPassword
+
+ const changeCurrentPassword= asyncHandler(async(req, res)=>{
+  const {oldPassword, newPassword} = req.body
+  // if we want this we can
+  //if(!(newPassword === confirmPassword)){}
+  const user = await User.findById(req.user._id)
+  const isCorrectPassword= await user.isPasswordCorrect(oldPassword)
+  if(!isCorrectPassword){
+    throw new ApiError(400, "Old password is incorrect")
+  }
+  // agr to correct password h to new password se update kr dein gy
+  user.password = newPassword
+  await user.save({validateBeforeSave: false})
+  return res.status(200)
+  .json(new ApiResponse(200, {}, "Password changed successfully"))
+ })
+
+ //How to get CurrentUser
+ const getCurrentUser= asyncHandler(async(req, res)=>{
+  return res.status(200)
+  .json(200, req.user, "current User fetched successfully")
+ })
+
+ // kahi pr b agr file update krwa rehy hu to alag controller or endponit rakhna bhtr h
+ // UpdateAccountDetail
+ const updateAccountDetail= asyncHandler(async(req, res)=>{
+      const {fullName, email}  = req.body
+      if(!fullName && !email){
+        throw new ApiError(400, "All feild are required")
+      }
+
+      const user = User.findByIdAndUpdate(
+        req.user?._id,
+        {
+          $set: {
+            fullName: fullName,
+            email:email,
+          }
+        },
+        {
+          //updated response milta h
+          new: true,
+        }
+      ).select("-password")
+
+      return res.status(200)
+      .json(
+        new ApiResponse(200, user, "Account updated successfully")
+      )
+ })
+
+ //how to update files
+ //multer middleware ki zroort hu gi taky files accept kr sakein or wahi log update kr payein gy jo 
+ // logged in hu
+ const updateProfilePicture= asyncHandler(async(req, res)=>{
+  //jb multer inject kare gy req.file k option mil jaye ga
+  const avatarLocalpath = req.file?.path
+  if(!avatarLocalpath){
+    throw new ApiError(400, "Please select a profile file pic")
+  }
+  //avatarLocalPath agr h to clodinary pr upload kr dein
+  // name wali lena h jo user.model mein db ko det waqt diya tha
+  const avatar = await cloudinaryUploadedfileMethod(avatarLocalpath)
+//avatar complete object mila h bhjna serf url h cloudinary pr
+  if(!avatar.url){
+    throw new ApiError(400, "Failed to upload file")
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+
+    {
+      $set:{
+         avatar:avatar.url,
+         }
+    },
+    {
+      new: true
+    }
+  ).select("-password")
+
+  return res.status(200)
+  .json(
+    new ApiResponse(201, user, "Avatar Images updated Successfully ") 
+  )
+  
+ })
+
+ //updateUserCoverImage
+ const updateProfileCoverImage= asyncHandler(async(req, res)=>{
+  //jb multer inject kare gy req.file k option mil jaye ga
+  const coverImageLocalpath = req.file?.path
+  if(!coverImageLocalpath){
+    throw new ApiError(400, "Please select a coverImage file pic")
+  }
+  //avatarLocalPath agr h to clodinary pr upload kr dein
+  const coverImage = await cloudinaryUploadedfileMethod(coverImageLocalpath)
+//avatar complete object mila h bhjna serf url h cloudinary pr
+  if(!coverImage.url){
+    throw new ApiError(400, "Failed to upload file")
+  }
+
+ const user = await User.findByIdAndUpdate(
+    req.user?._id,
+
+    {
+      $set:{
+         coverImage : coverImage.url,
+         }
+    },
+    {
+      new: true
+    }
+  ).select("-password")
+
+  return res.status(200)
+  .json(
+    new ApiResponse(201, user, "CoverImage Successfully updated") 
+  )
+  
+ })
+
 export {
   registerUser,
   loginUser,
   logoutUser,
-  refreshAccessToken
+  refreshAccessToken,
+  getCurrentUser,
+  changeCurrentPassword,
+  updateAccountDetail,
+  updateProfilePicture,
+  updateProfileCoverImage
 }
