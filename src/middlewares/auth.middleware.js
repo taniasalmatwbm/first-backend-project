@@ -2,10 +2,10 @@
 //login karne pr ham accessToken or reFreshToken bhje usi k base pr verify kare gy k 
 // user k pass sahi token h ya nhi usi pr login hua agr to true login h to ham 
 
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from 'jsonwebtoken'
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
 //req.body mein ak new object yani ak or req set kr dein gy
 //jo cheez use na hu rhi hu _ lga lo
 export const varifyJwt = asyncHandler(async (req, _, next)=>{
@@ -15,9 +15,10 @@ export const varifyJwt = asyncHandler(async (req, _, next)=>{
  // login se to sye hn cookie lkn phir b  
  //postman se header mein Authorization: Bearer <token> ata h
   try{
+    //console.log()
     const token = req.cookies?.accessToken || req.header
-("Authorization")?.replace("Bearer ", "") //kali kr de tp pichy serf token reh jaye ga 
-
+("Authorization")?.replace("Bearer ", "") //kali kr de ta k pichy serf token reh jaye ga 
+ 
 if(!token){
     throw new ApiError(201, "unAuthorized request")
 }
@@ -34,13 +35,15 @@ if(!token){
  .select("-password -refreshToken") //ignore
 
  if(!user){
-    // todo : discess about frontend
+    // todo : discuss about frontend
     throw new ApiError(201, "inValid Token !!!")
  }
+ //agr user h to req.user ko set kr dein gy
  req.user=user
  //routes mein verifyJwt k bad kiya krna h es liye next() use kiya
  next()
   }catch(error){
     throw new ApiError(401, error?.message || "Invalid token access")
   }
+
 })
