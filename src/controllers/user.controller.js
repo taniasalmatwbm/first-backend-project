@@ -84,7 +84,7 @@ const registerUser= asyncHandler(async (req, res)=>{
       // error se koi baki data mein show hu ga
       let coverImageLocalPath;
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-        coverImageLocalPath = req.files.coverImage[0].path
+        coverImageLocalPath = req.files.coverImage[0].path;
     }
 
       if(!avatarLocalpath){
@@ -95,7 +95,7 @@ const registerUser= asyncHandler(async (req, res)=>{
        // image may be take time use await
        //must be check avatar it is required
        const avatar =await cloudinaryUploadedfileMethod(avatarLocalpath)
-       const coverImage=await cloudinaryUploadedfileMethod(coverImageLocalpath)
+       const coverImage=await cloudinaryUploadedfileMethod(coverImageLocalPath)
  
        if(!avatar){
          throw new ApiError(400, "Avatar file is not required in cloudinary !!")
@@ -145,15 +145,18 @@ const loginUser= asyncHandler(async (req, res)=>{
 
    //1:- logic  req.body  => se login data le gy
    const {username, email, password} =req.body
-
+    console.log(email)
    //-----------------------------
 
    //2:-logic username or email access kis pr krwana h 
    //(!username) pr b serf krwa sakte (!email pr b) depend on requirment agr dono nhi diye
-   if (!username || !email){
+   //dono chaye
+   if (!username && !email){
        throw new ApiError(400, "username or email must be required !!!")
    }
-   
+    //dono se ak cheya to if(!(username || email)){
+    // throw new ApiError(400, "username or email must be required !!!")
+    //}
    //-------------------------------
 
    //3-logic find user is available in database or note
@@ -184,7 +187,7 @@ const loginUser= asyncHandler(async (req, res)=>{
    const {refreshToken, accessToken}= await generateAccessandRefreshToken(user._id)
     
    const loggedIn =await User.findById(user._id).select("-password -refreshToken")
-
+   //console.log(loggedIn)
    //----------------------------------------
    //6-logic send these token in cookies securly
    // kis ki cookies mein bhjna h or how ?
