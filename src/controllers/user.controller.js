@@ -3,6 +3,7 @@ import {ApiResponse}  from "../utils/ApiResponse.js"
 import {ApiError} from  "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
 import {cloudinaryUploadedfileMethod} from "../utils/cloudinary.js"
+import jwt from "jsonwebtoken"
 
 
 const generateAccessandRefreshToken= async(userId)=>{
@@ -226,6 +227,7 @@ const loginUser= asyncHandler(async (req, res)=>{
 })
 
 //logout conroller
+//---------------------
 // yaha middleware use kare gy register hute waqt b to multer as middleware use kiya tha
 // pic sath register mein le jany k liye tu yaha logout se pahle b khud k middleware 
 // use kare gy
@@ -261,8 +263,88 @@ const logoutUser =asyncHandler(async (req, res) => {
   
 })
 
+
+ /* access token jb tk h ap jin feature ko access krne k authenticated hu kr 
+# sakta (for examp-sign-up hu to login)lkn agr hamra login session 15 min 
+# mein expire hu jta secure reason ki wja se phir hame again password deina hoga yaha
+# 
+# ata h resfresh token hame database mein b save rakhte hn or user ko b dety hn 
+# user ko validate to access token se hi krty hn or user hr br password dalne ki zroort
+# nhi h
+# agr ap k pass ap k refresh token h to ak endpoint hit kr do agr waha se mary pass jo
+# refresh token h or jo ap k pass refresh token h agr same h to mein ap ko ak naya access
+# token de du ga 
+# agr refresh token nhi match h to error return kr deta h */
+
+// refresh Token
+// endpoint hit krne k liye saab se pahle cookies se refresh token le gy
+const refreshAccessToken= asyncHandler( async(req, res)=>{
+  // req.body es liye hu sakta h moblie app use kr rha hu
+  const incomingRefreshToken =req.cookies.refreshToken || req.body.refreshToken
+
+  if(!incomingRefreshToken){
+    throw new ApiError(401,"unauthorized Token")
+  }
+  // refresh token ko verify krna h
+  // decoded token mila h agr information h to theek h warna token decoded mil jata h
+  // warna jo user k passtoken gya h or database pass jo h dono alag h user k pass 
+  // encrypted pochta h hamre database wala raw cheya
+  // ab user.model mein bnaya hua refreshToken decode hu chuka h or waha ham ne jwt ko 
+  // _id diya tha or es k access to huna cheya decodedToken k pass 
+  // agr to access h to mein mongodb se query mar kr us user ki information le sakta hun
+  // let's try
+     try{
+      const decodedToken= jwt.verify(incomingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+       )
+  
+       const user = await User.findById(decodedToken._id)
+  
+       if(!user){
+        throw new ApiError(401,"Invalid Refresh Token !!!")
+       }
+       // yaha tak to valid hi token aya ga 
+       // user.controller mein jo generateAccessandRefreshToken ne complete
+       // dono token ko decode kr k diya tha or esy save b krwaya tha
+       // match krna h 
+       // incomingRefreshToken se _id de kr jo decode kr k jo user liya h us k 
+       // pass b ak token hu ga us se match kare gy k same h ya nhi
+       // agr to match nhi krty dono
+       if(incomingRefreshToken !== user?.refreshToken){
+        throw new ApiError(401, "Refresh token is expired or used")
+       }
+  
+       // agr to match huta to generateAccessandRefreshToken jo k upr bnaya h
+       // us se again token refresh kr dein gy
+       //cookies mein bhjna h option to rakhne pary gy
+  
+      const options={
+        httpOnly: true,
+        secure: true
+       }
+       // refresh token generate krna h
+      const {accessToken, newRefreshToken}= await generateAccessandRefreshToken(user._id)
+       //refresh cookies mein b bhj dein gy or pora k pora response b bhj dein gy
+       return res
+       .status(200)
+       .cookie("accessToken", accessToken, options)
+       .cookie("refreshToken", newRefreshToken, options)
+       .json(
+            new ApiResponse(
+               200,
+               {accessToken, refreshToken: newRefreshToken},
+               "Access Token and Refresh Token generated successfully"
+               // ab yaha tak endpoint h hamre pass
+           )
+       )
+     }catch(error){
+      throw new ApiError(401, error?.message || "Invalid refresh token")
+     }
+})
+
 export {
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  refreshAccessToken
 }
