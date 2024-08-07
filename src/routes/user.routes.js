@@ -1,5 +1,16 @@
 import {Router} from 'express'
-import { loginUser, logoutUser, registerUser, refreshAccessToken } from '../controllers/user.controller.js'
+import {
+     loginUser,
+     logoutUser,
+      registerUser, 
+      refreshAccessToken,
+       changeCurrentPassword, 
+       getCurrentUser, 
+       updateAccountDetail, 
+       updateProfilePicture,
+        updateProfileCoverImage, 
+        getWatchHistory, 
+        getUserChannelProfile } from '../controllers/user.controller.js'
 import {upload} from '../middlewares/multer.middleware.js'
 import { varifyJwt } from '../middlewares/auth.middleware.js'
 
@@ -27,5 +38,14 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(varifyJwt, logoutUser)
 
 router.route("/refresh-token").post(refreshAccessToken)
+router.route("/current-password").post(varifyJwt, changeCurrentPassword)
+router.route("/current-user").get(varifyJwt, getCurrentUser)
+router.route("/update-account").patch(varifyJwt, updateAccountDetail)
+router.route("/avatar").patch(varifyJwt, 
+upload.single("avatar"), updateProfilePicture)
+router.route("/cover-image").patch(varifyJwt,
+upload.single("coverImage"), updateProfileCoverImage)
+router.route("/c/:username").get(varifyJwt, getUserChannelProfile)
+router.route("/history").get(varifyJwt, getWatchHistory)
 //export default k purpose jaha import krna h we can use by any name 
 export default router
