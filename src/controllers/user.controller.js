@@ -633,6 +633,5 @@ export {
   updateProfilePicture,
   updateProfileCoverImage,
   getUserChannelProfile,
-  getCurrentUser,
   getWatchHistory
 }
