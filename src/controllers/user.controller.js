@@ -374,7 +374,7 @@ const refreshAccessToken= asyncHandler( async(req, res)=>{
         throw new ApiError(400, "All feild are required")
       }
 
-      const user = User.findByIdAndUpdate(
+      const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
           $set: {
@@ -406,6 +406,7 @@ const refreshAccessToken= asyncHandler( async(req, res)=>{
   //avatarLocalPath agr h to clodinary pr upload kr dein
   // name wali lena h jo user.model mein db ko det waqt diya tha
   const avatar = await cloudinaryUploadedfileMethod(avatarLocalpath)
+  // avatar deleted todo
 //avatar complete object mila h bhjna serf url h cloudinary pr
   if(!avatar.url){
     throw new ApiError(400, "Failed to upload file")
@@ -465,6 +466,162 @@ const refreshAccessToken= asyncHandler( async(req, res)=>{
   
  })
 
+ const getUserChannelProfile= asyncHandler(async(req, res)=>{
+  const {username} = req.params
+
+  if(!username?.trim()){
+    throw new ApiError(400, "Please enter a valid username")
+  }
+  //const user = await User.findOne({username}).select("-password")
+  // es trha n kr sakte thy id niklte or further
+  // lkn mongodb pipeline deta h to usi se kare gy
+  // User.aggregate hamsha array deta h
+  const channel = await User.aggregate([
+    //first pipeline filter kr lein doument se
+    {
+      $match:{ 
+        username: username?.toLowerCase()
+      }
+    },
+    //ak channel h taniyorcode tu us k subscriber find krne k liye lookup use kare gy
+    //model k name k first words small or and pr s lg jta h
+    {
+      $lookup:{ 
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers"   // depends on us
+      }
+    },
+    //taniyaorcode ne ketne channel subscribe kkiye hein
+    //ab ki dafa aya ga foreignField mein subscriber es k subscription.model 
+    //se name k thek pta chlta h
+    {
+      $lookup:{
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo"   // depends on us jin ko subscribe kiya hua h
+      }
+    },
+  //ab en ko add krna h ye kiya kare k users ki sari feild mein khxh or field add kr dega
+    // upr tu sari feilds ko Eketha kriya h 
+    //channel k subscriber ketne h 
+   // $size :"$subscribers" subscribers k sath $ lgy ga ku k ab ye b feild h
+    {
+      //es dono ko user mein add kiya h
+      $addFields:{
+         subscriberCount: {
+            $size :"$subscribers"
+         },
+         channelSubscribedToCount: {
+            $size :"$subscribedTo"
+         },
+         // ab ham un k subscribers list mein h ya nhi 
+         // req.user._id, "$subscribers.subscriber" subrs k list  mein se subr docu mein
+         // id nikal lein
+         // condition lgai h $in obj mein b dekh leta h or array mein b 
+         // $subscribers.subscriberye obj mein h
+         isSubscribed: {
+          $cond:{
+            if:{$in:[req.user._id, "$subscribers.subscriber"]},
+            then: true,
+            else: false
+          }
+         
+         }
+      }
+    },
+    //mein sari values nhi du ga serf selected dun ga
+    {
+      $project:{
+        //flag on kiya h ye mil jaye ga
+        fullName: 1,
+        username: 1,
+        subscriberCount: 1,
+        channelSubscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+      }
+    }
+
+  ])
+  console.log("what channel aggregate give us ", channel)
+
+  if(!channel?.length){
+    throw new ApiError(404, "channel not found")
+
+  }
+    //complete obj nhi bhja serf 0 index bhj diya
+     return res.status(404)
+     .json(
+      new ApiResponse(200, channel[0], "User channel fetched succesfully")
+     )
+ })
+
+ const getWatchHistory = asyncHandler(async(req, res)=>{
+  //watch history mein id cheya or mongoose hame direct mongodb ki direct string
+  // id nhi deta lkn leny k liye method zroor deta h
+    const user =await User.aggregate([
+      {
+        //hamra id mongodb k object id se match hu gya h 
+        //ab hame user mil gya h watch history mein jna pary ga lookup krna pary ga
+        $match:{
+          _id: new mongoose.Types.ObjectId(req.user._id)
+        }
+      },
+      {
+        $lookup:{ 
+          from: "videos",
+          localField: "watchHistory",
+          foreignField: "_id",
+          as: "watchHistory" ,    // yaha hamre pass boht sari videos a gai hn
+           pipeline:[
+            {   //ab yaha videos mein hein ham or lookup ki pipeline bana rehy 
+              //users mein lookup krna h hme
+              $lookup:{
+                from: "users",   //or yaha hamre array mein users ki sari feild mil gai h
+                localField: "owner",  //lkn ham ne own mein serf khxh hi field deni h
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  //ab jetni b field h owner mein chali jayein gi
+                  {
+                    $project: {
+                      fullName: 1,
+                      username: 1,
+                      avatar: 1
+                    }
+
+                  }  
+                ]
+              }
+            },
+            {
+              //sara array mily ga owner k lkn hame serf  index cheya
+              $addFields:{
+               // owner:{$arrayElemAt:["$owner",0]} also can
+               owner:{$first: "$owner"}  //seedha owner obj mil jaye ga . kr k nikal le gy
+
+              }
+            }
+           ]
+        }
+      }
+
+    ])
+
+    return res.status(200)
+    .json(
+     new ApiResponse(200, user[0].watchHistory, "watch history fetched succesfully")
+    )
+
+
+
+ })
+
 export {
   registerUser,
   loginUser,
@@ -474,5 +631,8 @@ export {
   changeCurrentPassword,
   updateAccountDetail,
   updateProfilePicture,
-  updateProfileCoverImage
+  updateProfileCoverImage,
+  getUserChannelProfile,
+  getCurrentUser,
+  getWatchHistory
 }
